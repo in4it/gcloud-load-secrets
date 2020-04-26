@@ -15,10 +15,12 @@ func main() {
 
 	var (
 		secretsPrefix string
+		secretsLabel  string
 		cmd           string
 		debug         bool
 	)
-	flag.StringVar(&secretsPrefix, "prefix", "", "prefix to use when retrieving secrets")
+	flag.StringVar(&secretsPrefix, "prefix", "", "prefix to filter on when retrieving secrets")
+	flag.StringVar(&secretsLabel, "label", "", "label to filter on when retrieving secrets")
 	flag.StringVar(&cmd, "cmd", "", "execute command")
 	flag.BoolVar(&debug, "debug", false, "enable debug output")
 
@@ -35,7 +37,7 @@ func main() {
 		panic(err)
 	}
 
-	secrets, err := readSecrets.ListSecrets(secretsPrefix)
+	secrets, err := readSecrets.ListSecrets(secretsPrefix, secretsLabel)
 	if err != nil {
 		panic(err)
 	}

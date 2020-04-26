@@ -39,7 +39,7 @@ func NewReadSecrets() (*ReadSecrets, error) {
 	}, nil
 }
 
-func (r *ReadSecrets) ListSecrets(secretsPrefix string) ([]Secret, error) {
+func (r *ReadSecrets) ListSecrets(secretsPrefix, secretsLabel string) ([]Secret, error) {
 	ctx := context.Background()
 
 	req := &secretmanagerpb.ListSecretsRequest{
@@ -60,7 +60,7 @@ func (r *ReadSecrets) ListSecrets(secretsPrefix string) ([]Secret, error) {
 			return secrets, fmt.Errorf("secret name in unexpected format: %s", resp.Name)
 		}
 		secretName := strings.Join(secretElements[3:], "/")
-		if strings.HasPrefix(secretName, secretsPrefix) {
+		if strings.HasPrefix(secretName, secretsPrefix) && r.MatchLabel(secretsLabel, resp.Labels) {
 			secrets = append(secrets, Secret{ID: resp.Name, Name: secretName})
 		}
 	}
@@ -89,4 +89,20 @@ func (r *ReadSecrets) GetKV(secrets []Secret) []string {
 		ret = append(ret, fmt.Sprintf("%s=%s", secret.Name, secret.Payload))
 	}
 	return ret
+}
+
+func (r *ReadSecrets) MatchLabel(label string, labels map[string]string) bool {
+	if label == "" {
+		return true
+	}
+	split := strings.Split(label, "=")
+	if len(split) != 2 {
+		return false
+	}
+	for k, v := range labels {
+		if k == split[0] && v == split[1] {
+			return true
+		}
+	}
+	return false
 }
